@@ -3,6 +3,7 @@ import numpy as np
 import gzip
 import json
 import re
+from tqdm import tqdm
 
 # Methods for reading data
 # Base code provided code from https://nijianmo.github.io/amazon/index.html
@@ -10,13 +11,21 @@ import re
 def getDF(path: str, max_lines:int = None,
           V_label='vote'):
   df = {}
+  n_problem_lines = 0
+  if max_lines is not None:
+    max_lines = int(max_lines)
   # open with gzip
   g = gzip.open(path, 'rb')
-  for i,l in enumerate(g):
-    d = json.loads(l)
-    df[i] = d
-    if max_lines is not None and i > max_lines:
+  pbar = tqdm(enumerate(g), miniters=5000, total=max_lines)
+  for i,l in pbar:
+    if max_lines is not None and i >= max_lines:
       break
+    try:
+      d = json.loads(l)
+      df[i] = d
+    except:
+      n_problem_lines += 1
+    pbar.set_description(f"Num problem lines: {n_problem_lines}", False)
   # close, dont leave haning
   g.close()
   # create frames
