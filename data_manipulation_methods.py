@@ -45,11 +45,11 @@ def label_Y(df: pd.DataFrame, min_stars: int = 4,
   """
   df[new_label] = df[ratings_key] >= min_stars
 
-def synthetic_perturb(df: pd.DataFrame, perturb_ratio: float = 0.5,
-                      text_label: str = 'reviewText',
-                      type_label: str = 'perturbType',
-                      perturb_text_label: str = 'perturbedText',
-                      counterfactual_text_label: str = 'counterFactText'):
+def generate_synthetic_text(df: pd.DataFrame, perturb_ratio: float = 0.5,
+                            text_label: str = 'reviewText',
+                            type_label: str = 'syntheticType',
+                            perturb_text_label: str = 'syntheticText',
+                            counterfactual_text_label: str = 'cfSyntheticText'):
   """
   Execute different types of perturbation based on type ratios
   """
@@ -219,3 +219,12 @@ def drop_data(df: pd.DataFrame, gamma: float = 0.3,
   # max iter hit without reaching gamma condition
   if not success:
     raise Exception("Max iter reached without hitting gamma condition")
+
+
+## Methods for saving dataset
+
+def save_df(df: pd.DataFrame, file_name: str):
+  """
+  Saves dataframe into a npz file with keys and data
+  """
+  np.savez(file_name, **{key: df[key] for key in df.keys()})

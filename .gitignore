@@ -162,3 +162,5 @@ cython_debug/
 # Project Specific
 data/*
 !data/*.json.gz
+.vscode
+*.code-workspace
