@@ -31,7 +31,10 @@ def getDF(path: str, max_lines:int = None,
   # create frames
   df = pd.DataFrame.from_dict(df, orient='index')
   # clean data
+  df[V_label] = df[V_label].str.replace(',','', regex=True).astype(float)
   df[V_label].fillna(0, inplace=True)
+  df[V_label] = df[V_label].astype(int)
+
   return df
 
 # Methods for injecting synthetic causality
@@ -223,8 +226,11 @@ def drop_data(df: pd.DataFrame, gamma: float = 0.3,
 
 ## Methods for saving dataset
 
-def save_df(df: pd.DataFrame, file_name: str):
+def save_df(df: pd.DataFrame, file_name: str, text_keys= ['reviewText', 'syntheticText', 'cfSyntheticText']):
   """
   Saves dataframe into a npz file with keys and data
   """
+  # convert to str type
+  [df[text_key].astype(str) for text_key in text_keys]
+  # save data
   np.savez(file_name, **{key: df[key] for key in df.keys()})
