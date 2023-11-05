@@ -26,7 +26,7 @@ class MMDRegularizerLayer(tf.keras.layers.Layer):
     Layer that stores a MMD regularizing cost,
     Does nothing if mmd_loss_fn is None
     """
-    def __init__(self, mmd_loss_fn= None,
+    def __init__(self, mmd_loss_fn: Callable = None,
                  trainable=True, name=None, dtype=None, dynamic=False, **kwargs):
         super().__init__(trainable, name, dtype, dynamic, **kwargs)
         self.mmd_loss_fn = mmd_loss_fn
