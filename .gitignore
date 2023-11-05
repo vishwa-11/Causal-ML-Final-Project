@@ -164,3 +164,6 @@ data/*
 !data/*.json.gz
 .vscode
 *.code-workspace
+pretrained_models/*
+!pretrained_models/*.tar.gz
+!pretrained_models/*.sh
