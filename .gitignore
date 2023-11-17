@@ -167,3 +167,5 @@ data/*
 pretrained_models/*
 !pretrained_models/*.tar.gz
 !pretrained_models/*.sh
+checkpoints/*
+!checkpoints/.gitignore
