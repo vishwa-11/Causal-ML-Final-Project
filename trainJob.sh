@@ -9,14 +9,18 @@
 #SBATCH --cpus-per-task=1
 #SBATCH --partition=gpu
 #SBATCH --gres=gpu:1
-#SBATCH --mem=4G
-#SBATCH --time=00:05:00
+#SBATCH --mem=6G
+#SBATCH --time=07:00:00
 #SBATCH --account=eecs598s009f23_class
 
+# load environment and modules
 module purge
 module load tensorflow
+source envs/tf_207_bert_309/bin/activate
 
-# for now test pythong run file
-python test_tensorflow.py > test_output.txt
+# train script
+python train.py
 
+# deactivate after done
+deactivate
 module purge
