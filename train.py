@@ -63,8 +63,8 @@ if __name__ == '__main__':
     val_ds = load_dataset(os.path.join(args.data_dir,args.val_ds_filename),
                           text_key='syntheticText', confounder_key='syntheticType',
                           label_key='above3Stars')
-    train_ds = train_ds.batch(batch_size)
-    val_ds = val_ds.batch(batch_size)
+    train_ds = train_ds.batch(args.batch_size)
+    val_ds = val_ds.batch(args.batch_size)
 
     # load text preprocessor
     tfhub_handle_preprocess = hub.load(os.path.join(args.pretrained_dir, args.preprocessor_filename))
@@ -87,9 +87,7 @@ if __name__ == '__main__':
                                                           save_best_only=True, save_weights_only=True)
 
     # compile model with optimizers and loss functions (excluding MMD)
-    model.compile(optimizer=optimizer,
-                  loss = tf.keras.losses.BinaryCrossentropy(from_logits=True),
-                  metrics = tf.metrics.BinaryAccuracy())
+    model.compile(optimizer=optimizer)
 
     # training of model
     tf.get_logger().setLevel('ERROR')

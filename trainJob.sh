@@ -10,7 +10,7 @@
 #SBATCH --partition=gpu
 #SBATCH --gres=gpu:1
 #SBATCH --mem=6G
-#SBATCH --time=07:00:00
+#SBATCH --time=32:00:00
 #SBATCH --account=eecs598s009f23_class
 
 # load environment and modules
