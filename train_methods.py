@@ -12,10 +12,12 @@ def load_dataset(file_path: str,
     - X: text inputs
     - Z: confounder inputs
     - Y: label ouputs
+    - NOTE: resorted to doing this due to keras insisting all labels must have a seperate cost fn
     """
     with np.load(file_path, allow_pickle=True) as data:
         dataset = tf.data.Dataset.from_tensor_slices(
             ({"text": tf.convert_to_tensor(data[text_key], name=text_key),
+              "label": tf.convert_to_tensor(data[label_key], name=label_key),
               "confounder": tf.convert_to_tensor(data[confounder_key], name=confounder_key)},
              tf.convert_to_tensor(data[label_key], name=label_key)))
 
@@ -32,20 +34,20 @@ class MMDRegularizerLayer(tf.keras.layers.Layer):
         self.mmd_loss_fn = mmd_loss_fn
         self._call_fn = self.trivial_call if mmd_loss_fn is None else self.binded_call
 
-    def call(self, z, y_pred):
+    def call(self, y_pred, y, z):
         """
         Run the call function that was binded on init
         """
-        return self._call_fn(z, y_pred)
+        return self._call_fn(y_pred, y, z)
 
-    def binded_call(self, z, y_pred):
+    def binded_call(self, y_pred, y, z):
         """
         Call with mmd_loss_fn bindings
         """
-        self.add_loss(self.mmd_loss_fn(z, y_pred))
+        self.add_loss(self.mmd_loss_fn(y_pred, y, z))
         return y_pred
 
-    def trivial_call(self, z, y_pred):
+    def trivial_call(self, y_pred, y, z):
         """
         Call with no binds, trivially returning y_pred withou
         doing anythong
@@ -66,7 +68,8 @@ def build_augmented_model(preprocessing_layer: hub.KerasLayer,
     net = tf.keras.layers.Dropout(0.1)(net)
     net = tf.keras.layers.Dense(1, activation=None, name='classifier')(net)
 
+    label_input = tf.keras.layers.Input(shape=(), dtype=tf.int32, name="label")
     confounder_input = tf.keras.layers.Input(shape=(), dtype=tf.bool, name="confounder")
-    net = MMDRegularizerLayer(mmd_loss_fn=mmd_loss_fn, name="mmd_loss")(confounder_input, net)
+    net = MMDRegularizerLayer(mmd_loss_fn=mmd_loss_fn, name="mmd_loss")(net, label_input, confounder_input)
 
-    return tf.keras.Model(inputs=[text_input, confounder_input], outputs=net)
+    return tf.keras.Model(inputs=[text_input, label_input, confounder_input], outputs=net)
