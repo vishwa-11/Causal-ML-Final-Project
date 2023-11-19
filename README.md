@@ -33,14 +33,14 @@
 ## Instructions for training network on your Umich Great Lakes
 
 ### 1. Create environment to run tensorflow stuff
-1. Log in to great lakes CLI (for linux $ ssh <uniqname>@greatlakes.arc-ts.umich.edu)
-2. Prior to any changes ensure your modules are purged first ($ module purge) this will ensure clean working environment and ensure the right modules are loaded later
+1. Log in to great lakes CLI (for linux `$ ssh <uniqname>@greatlakes.arc-ts.umich.edu`)
+2. Prior to any changes ensure your modules are purged first (`$ module purge`) this will ensure clean working environment and ensure the right modules are loaded later
 3. Load tensorflow `$ module load tensorflow`
 4. Change directory into the location you want to store your environment (lets call this )
     - For `trainJob.sh` we have used directory `envs`
     - `$ mkdir envs`
     - `$ cd envs`
-5. Create a virtual environment ($ python -m venv <env> where is name of environment)
+5. Create a virtual environment (`$ python -m venv <env>` where is name of environment)
     - For `trainJob.sh` we named env `tf_207_bert_309`
     - `$ python -m venv tf_207_bert_309`
     - when done you will see a new directory `envs/tf_207_bert_309`
@@ -48,7 +48,7 @@
     - `$ cd ../` (go back to main directory since thats where we will be running `trainJob.sh`)
     - `$ source envs/tf_207_bert_309/bin/activate`
 8. You will notice a bracket with env name in front of the commands now (eg. (env) [...]$ ...)
-9. Install all packages using pip ($ pip install <packages>...)
+9. Install all packages using pip (`$ pip install <packages>...`)
     - DO THIS IN THE VIRTUAL ENVIRONMENT -> I DO NOT KNOW WHAT HAPPENS IF YOU DON`T BY IT MIGHT MESS UP YOUR WORKSPACE
     - exact command I used for this project:
         - `$ pip install --upgrade pip` (ensure pip is updated)
