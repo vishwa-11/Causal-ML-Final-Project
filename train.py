@@ -81,15 +81,15 @@ if __name__ == '__main__':
     optimizer = tf.keras.optimizers.SGD(learning_rate=args.learning_rate)
 
     # additional callbacks
-    early_stopping = tf.keras.callbacks.EarlyStopping(monitor='val_binary_accuracy', patience=args.patience,
+    early_stopping = tf.keras.callbacks.EarlyStopping(monitor='val_sparse_categorical_accuracy', patience=args.patience,
                                                       mode='max', restore_best_weights=True)
     model_checkpoint = tf.keras.callbacks.ModelCheckpoint(os.path.join(args.checkpoint_dir, args.trained_weights_filename),
                                                           save_best_only=True, save_weights_only=True)
 
     # compile model with optimizers and loss functions (excluding MMD)
     model.compile(optimizer=optimizer,
-                  loss = tf.keras.losses.BinaryCrossentropy(from_logits=True),
-                  metrics = tf.metrics.BinaryAccuracy())
+                  loss = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+                  metrics = tf.metrics.SparseCategoricalAccuracy())
 
     # training of model
     tf.get_logger().setLevel('ERROR')
