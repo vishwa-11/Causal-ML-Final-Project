@@ -63,8 +63,8 @@ if __name__ == '__main__':
     val_ds = load_dataset(os.path.join(args.data_dir,args.val_ds_filename),
                           text_key='syntheticText', confounder_key='syntheticType',
                           label_key='above3Stars')
-    train_ds = train_ds.batch(batch_size)
-    val_ds = val_ds.batch(batch_size)
+    train_ds = train_ds.batch(args.batch_size)
+    val_ds = val_ds.batch(args.batch_size)
 
     # load text preprocessor
     tfhub_handle_preprocess = hub.load(os.path.join(args.pretrained_dir, args.preprocessor_filename))
