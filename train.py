@@ -53,6 +53,8 @@ if __name__ == '__main__':
                         help='Trained model weights directory path')
     parser.add_argument('--trained-weights-filename', default=trained_weights_filename, type=str,
                         help='Trained model weights filename')
+    parser.add_argument('-c','--conditional-mmd-coeff', default=0., type=float,
+                        help='Coefficient for conditional MMD regularizer')
 
     args = parser.parse_args()
 
@@ -74,8 +76,13 @@ if __name__ == '__main__':
     tfhub_handle_encoder = hub.load(os.path.join(args.pretrained_dir, args.bert_filename))
     bert_model = hub.KerasLayer(tfhub_handle_encoder, name='BERT_encoder')
 
+    # define MMD regularizer
+    mmd_fn = None
+    if args.conditional_mmd_coeff > 0.:
+        mmd_fn = lambda y_pred, y, z: conditional_mmd_loss(y_pred, y, z, args.conditional_mmd_coeff)
+
     # build augmented model with MMD loss functions
-    model = build_augmented_model(bert_preprocess_model, bert_model) # no MMD loss for now
+    model = build_augmented_model(bert_preprocess_model, bert_model, mmd_fn) # only conditional mmd loss for now
 
     # define optimizer
     optimizer = tf.keras.optimizers.SGD(learning_rate=args.learning_rate)
