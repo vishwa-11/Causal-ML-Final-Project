@@ -6,7 +6,7 @@ import tensorflow_hub as hub
 import tensorflow_text as text # required to load from hub (even though pylance doesnt detect it)
 # from official.nlp import optiimzation  # to create AdamW optimizer
 
-from train_methods import *
+from train_methods import load_dataset, build_augmented_model, marginal_mmd_loss, conditional_mmd_loss
 
 # path related args
 data_dir = 'data'
@@ -51,8 +51,10 @@ if __name__ == '__main__':
                         help='Checkpoint directory path')
     parser.add_argument('--trained-dir', default=trained_dir, type=str,
                         help='Trained model weights directory path')
-    parser.add_argument('--trained-weights-filename', default=trained_weights_filename, type=str,
+    parser.add_argument('-f','--trained-weights-filename', default=trained_weights_filename, type=str,
                         help='Trained model weights filename')
+    parser.add_argument('-m','--marginal-mmd-coeff', default=0., type=float,
+                        help='Coefficient for marginal MMD regularizer')
     parser.add_argument('-c','--conditional-mmd-coeff', default=0., type=float,
                         help='Coefficient for conditional MMD regularizer')
 
@@ -78,8 +80,11 @@ if __name__ == '__main__':
 
     # define MMD regularizer
     mmd_fn = None
-    if args.conditional_mmd_coeff > 0.:
-        mmd_fn = lambda y_pred, y, z: conditional_mmd_loss(y_pred, y, z, args.conditional_mmd_coeff)
+    assert not ((args.marginal_mmd_coeff > 0) and (args.conditional_mmd_coeff > 0)), "Only one of conditional or marginal MMD coeff can be more than 0."
+    if args.marginal_mmd_coeff > 0.:
+        mmd_fn = lambda y_pred, y, z: marginal_mmd_loss(y_pred, y, z, args.marginal_mmd_coeff)
+    elif args.conditional_mmd_coeff > 0.:
+        mmd_fn = lambda y_pred, y, z: conditional_mmd_loss(y_pred, y, z, args.marginal_mmd_coeff)
 
     # build augmented model with MMD loss functions
     model = build_augmented_model(bert_preprocess_model, bert_model, mmd_fn) # only conditional mmd loss for now

@@ -108,14 +108,18 @@ def calculate_mmd(x_i: tf.Tensor, x_j: tf.Tensor,
     tf.Assert(
         tf.logical_and(tf.greater(tf.shape(x_i)[-2], 0), tf.greater(tf.shape(x_j)[-2],0)), [x_i, x_j]
     )
+    tf.Assert(
+        tf.logical_and(tf.greater(M, 0), tf.greater(N,0)), [x_i, x_j]
+    )
 
     k_ii = tf.math.reduce_sum(kernel(x_i[...,:,None,:], x_i[...,None,:,:]), axis=(-1,-2)) / tf.cast(M*M, tf.float32)
     k_ij = tf.math.reduce_sum(kernel(x_i[...,:,None,:], x_j[...,None,:,:]), axis=(-1,-2)) / tf.cast(M*N, tf.float32)
     k_jj = tf.math.reduce_sum(kernel(x_j[...,:,None,:], x_j[...,None,:,:]), axis=(-1,-2)) / tf.cast(N*N, tf.float32)
+
     return tf.math.sqrt(k_ii - 2*k_ij + k_jj)
 
 @tf.function
-def conditional_mmd_loss(y_pred: tf.Tensor, y: tf.Tensor, z: tf.Tensor,
+def marginal_mmd_loss(y_pred: tf.Tensor, y: tf.Tensor, z: tf.Tensor,
                          k: float=1.0,
                          kernel: Callable= rbf_kernel) -> tf.Tensor:
     """
@@ -133,3 +137,33 @@ def conditional_mmd_loss(y_pred: tf.Tensor, y: tf.Tensor, z: tf.Tensor,
     M = tf.reduce_sum(tf.cast(is_z0, tf.float32))
     N = tf.reduce_sum(tf.cast(~is_z0, tf.float32))
     return k * calculate_mmd(y_pred[is_z0], y_pred[~is_z0], M, N, kernel)
+
+@tf.function
+def conditional_mmd_loss(y_pred: tf.Tensor, y: tf.Tensor, z: tf.Tensor,
+                         k: float=1.0,
+                         kernel: Callable= rbf_kernel) -> tf.Tensor:
+    """
+    Calculates the conditional mmd[p(X|Z=0,Y=0), p(X|Z=1,Y=0)] + mmd[p(X|Z=0,Y=1), p(X|Z=1,Y=1)]
+    - Inputs:
+        - y: (B, y_dim) tensor, true labels
+        - z: (B,) bool tensor, confounder value
+        - y_pred: (B, y_dim) tensor, predicted labels
+        - k: float, scaling factor
+        - kernel: Callabel that takes in (x_i, x_j) -> scalar
+    - Outputs:
+        - out: () tensor
+    """
+    is_z0 = (z == 0)
+    is_y0 = (y == 0)
+    zy_00 = is_z0 & is_y0
+    zy_10 = (~is_z0) & is_y0
+    zy_01 = is_z0 & (~is_y0)
+    zy_11 = (~is_z0) & (~is_y0)
+
+    M1 = tf.reduce_sum(tf.cast(zy_00, tf.float32))
+    N1 = tf.reduce_sum(tf.cast(zy_10, tf.float32))
+    M2 = tf.reduce_sum(tf.cast(zy_01, tf.float32))
+    N2 = tf.reduce_sum(tf.cast(zy_11, tf.float32))
+
+    return k * calculate_mmd(y_pred[zy_00], y_pred[zy_10], M1, N1, kernel) + \
+        k * calculate_mmd(y_pred[zy_01], y_pred[zy_11], M2, N2, kernel)
