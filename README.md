@@ -37,7 +37,7 @@
 2. Prior to any changes ensure your modules are purged first (`$ module purge`) this will ensure clean working environment and ensure the right modules are loaded later
 3. Load tensorflow `$ module load tensorflow`
 4. Change directory into the location you want to store your environment (lets call this )
-    - For `trainJob.sh` we have used directory `envs`
+    - For `trainJob_synthetic.sh` and `trainJob_natural.sh` we have used directory `envs`
     - `$ mkdir envs`
     - `$ cd envs`
 5. Create a virtual environment (`$ python -m venv <env>` where is name of environment)
@@ -63,9 +63,14 @@
 - You should have `data` directory with the following:
     - `syn_train_large.npz`
     - `syn_val_large.npz`
+    - `nat_train_large.npz`
+    - `nat_val_large.npz`
 - You should have `checkpoints` directory
 - You should have `trained_model_weights` directory
 
 ### 3. Submit training job
-- Call `sbatch` with the `trainJob.sh` file
-    - `$ sbatch trainJob.sh`
+- Call `sbatch` with `trainJob_synthetic.sh` for synthetic data or  `trainJob_natural.sh` for natural data
+    - `$ sbatch trainJob_synthetic.sh`
+
+### 4. (Additional) Starting training from a previous checkpoint
+- Specify addition `-r` flag after `train.py` in the `trainJob_snthetic.sh` or `trainJob_natural.sh`
