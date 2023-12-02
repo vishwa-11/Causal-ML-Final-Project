@@ -87,7 +87,7 @@ Descriptions of the files are as follows:
   
 ## Default folder structure
 
-<root>
+    <root>
     ├── checkpoints             # Store checkpoints generated during training (IMPORTANT for great lakes, max training time only 8 hours!)
     │   ├── ...
     ├── data                    # All the data files
@@ -99,9 +99,9 @@ Descriptions of the files are as follows:
     │   └── syn_train_large.npz
     ├── pretrained_models       # All pretrained models
     │   ├── bert_en_uncased_L-12_H-768_A-12_4             # BERT transformer model and weights
-    │       ├── ...
+    │   |   ├── ...
     │   ├── bert_en_uncased_preprocess_3                  # Tokenizer (preprocessor) model and weights
-    │       ├── ...
+    │   |   ├── ...
     ├── trained_model_weights   # Stores all models that hit stopping condition
     │   ├── ...
     ├── train.py                # Training script (`--help` for arguments)
