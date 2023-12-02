@@ -1,18 +1,22 @@
 # Causal-ML-Final-Project
+This project is based on a critical replication of Vietch's paper [Counterfactual Invariance to Spurious Correlations: Why and How to Pass Stress Tests](https://arxiv.org/abs/2106.00545).
 
 ## Instructions for setting up project:
 
 ### 1. Dataset and models are stored as git-lfs in a compressed form. You need to extract them.
+- Skip this step if you are downloading data (see [section](#computed-resources))
 - Run `$ git lfs fetch origin main` to pull it.
 - Check that you have `data\Clothing_Shoes_and_Jewelry_5.json.gz`
 - Check that you have `pretrained_models\bert_en_uncased_L-12_H-768_A-12_4.tar.gz`
 - Check that you have `pretrained_models\bert_en_uncased_preprocess_3.tar.gz`
 
 ### 2. Dataset needs to be generated from original dataset
-- For now only synthetic dataset are available.
-- Run script `generate_synthetic_dataset.ipynb` to generate training and test dataset.
+- Skip this step if you are downloading data (see [section](#computed-resources))
+- Run script `generate_synthetic_dataset.ipynb` to generate synthetic dataset.
+- Run scripts `generate_natural_dataset.ipynb` and `generate_natural_dataset2.ipynb` got generate natural dataset. (Descirption to be updated)
 
 ### 3. Pretrained models need to be extracted to be loaded
+- Skip this step if you are downloading data (see [section](#computed-resources))
 - Run `pretrained_model\extract_models.sh` to extract models into respective directory.
 
 ### 4. See example on how to run training to familiarize with code
