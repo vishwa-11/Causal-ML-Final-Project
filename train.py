@@ -35,6 +35,8 @@ if __name__ == '__main__':
                         help='Learning rate for training')
     parser.add_argument('-p', '--patience', default=patience, type=int,
                         help='Patience for early stopping')
+    parser.add_argument('--train-natural', action='store_true',
+                        help='Swap from training synthetic data to natural data')
     parser.add_argument('--data-dir', default=data_dir, type=str,
                         help='Dataset directory')
     parser.add_argument('--train-ds-filename', default=train_ds_filename, type=str,
@@ -57,18 +59,30 @@ if __name__ == '__main__':
                         help='Coefficient for marginal MMD regularizer')
     parser.add_argument('-c','--conditional-mmd-coeff', default=0., type=float,
                         help='Coefficient for conditional MMD regularizer')
+    parser.add_argument('-r','--reload-checkpoint', action='store_true',
+                        help='Flag on whether to load from checkpoint.')
 
     args = parser.parse_args()
 
     # load dataset
-    train_ds = load_dataset(os.path.join(args.data_dir, args.train_ds_filename),
+    if args.train_natural:
+        train_ds = load_dataset(os.path.join(args.data_dir, args.train_ds_filename),
+                            text_key='original_sentence', confounder_key='above3Stars',
+                            label_key='aboveVThreshold')
+        val_ds = load_dataset(os.path.join(args.data_dir,args.val_ds_filename),
+                            text_key='original_sentence', confounder_key='above3Stars',
+                            label_key='aboveVThreshold')
+        train_ds = train_ds.batch(args.batch_size)
+        val_ds = val_ds.batch(args.batch_size)
+    else:
+        train_ds = load_dataset(os.path.join(args.data_dir, args.train_ds_filename),
+                                text_key='syntheticText', confounder_key='syntheticType',
+                                label_key='above3Stars')
+        val_ds = load_dataset(os.path.join(args.data_dir,args.val_ds_filename),
                             text_key='syntheticText', confounder_key='syntheticType',
                             label_key='above3Stars')
-    val_ds = load_dataset(os.path.join(args.data_dir,args.val_ds_filename),
-                          text_key='syntheticText', confounder_key='syntheticType',
-                          label_key='above3Stars')
-    train_ds = train_ds.batch(args.batch_size)
-    val_ds = val_ds.batch(args.batch_size)
+        train_ds = train_ds.batch(args.batch_size)
+        val_ds = val_ds.batch(args.batch_size)
 
     # load text preprocessor
     tfhub_handle_preprocess = hub.load(os.path.join(args.pretrained_dir, args.preprocessor_filename))
@@ -102,6 +116,12 @@ if __name__ == '__main__':
     model.compile(optimizer=optimizer,
                   loss = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
                   metrics = tf.metrics.SparseCategoricalAccuracy())
+
+    # reload checkpoint
+    if args.reload_checkpoint:
+        print(f'Loading weights from checkpoint:{args.trained_weights_filename}')
+        model.load_weights(os.path.join(args.checkpoint_dir, args.trained_weights_filename))
+        print('Checkpoint weights loaded successfully.')
 
     # training of model
     tf.get_logger().setLevel('ERROR')

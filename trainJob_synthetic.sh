@@ -19,7 +19,7 @@ module load tensorflow
 source envs/tf_207_bert_309/bin/activate
 
 # train script
-python train.py
+python train.py -m 1.000 -f "BERT_synthetic_mMMD_1_000" -r
 
 # deactivate after done
 deactivate

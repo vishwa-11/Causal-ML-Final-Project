@@ -4,6 +4,7 @@ import gzip
 import json
 import re
 from tqdm import tqdm
+from typing import Tuple
 
 # Methods for reading data
 # Base code provided code from https://nijianmo.github.io/amazon/index.html
@@ -193,11 +194,12 @@ def drop_data(df: pd.DataFrame, gamma: float = 0.3,
   for _ in range(max_iter):
     # calculate gamma condition
     N_Z1 = df[Z_label].sum()
-    N_V_Z1 = (df[Z_label] & df[V_label]>0).sum()
+    N_V_Z1 = (df[Z_label] & (df[V_label]>0)).sum()
+    t1 = (df[df[Z_label]][V_label] > 0).sum()
     P_V_Z1 = N_V_Z1 / N_Z1
 
     N_Z0 = (~df[Z_label]).sum()
-    N_V_Z0 = (~df[Z_label] & df[V_label]>0).sum()
+    N_V_Z0 = (~df[Z_label] & (df[V_label]>0)).sum()
     P_V_Z0 = N_V_Z0 / N_Z0
 
     # break if gamma condition met
@@ -224,11 +226,68 @@ def drop_data(df: pd.DataFrame, gamma: float = 0.3,
     raise Exception("Max iter reached without hitting gamma condition")
 
 
+def find_smallest_Tz(df: pd.DataFrame, gamma: float = 0.3,
+                     Z_label:str ='above3Stars', V_label: str='vote') -> Tuple[int, int]:
+  """
+  Find smallest T1 and T0 such that:
+  1. P(V>T1|Z=1) < gamma
+  2. P(V>T0|Z=0) < 1 - gamma
+  """
+
+  def scan_Tz(filtered_df: pd.DataFrame, threshold: float,
+              V_label: str, T_max: int):
+    N = filtered_df.shape[0]
+    for T in range(T_max):
+      if float((filtered_df[V_label] > T).sum()) / N < threshold:
+        return T
+
+    assert False, "Max iteration reached without hitting condition!!"
+
+  T_max = df[V_label].max()
+  T_1 = scan_Tz(df[df[Z_label]], gamma, V_label, T_max)
+  T_0 = scan_Tz(df[~df[Z_label]], 1-gamma, V_label, T_max)
+
+  return T_1, T_0
+
+def assign_natural_Y(df: pd.DataFrame, T_1: int, T_0: int,
+                     gamma: float = 0.3,
+                     Z_label:str ='above3Stars', V_label: str='vote',
+                     Y_label:str ='aboveVThreshold'):
+
+  def random_flip(df: pd.DataFrame, filter: pd.Series,
+                  T_k: int, threshold: float,
+                  V_label: str, Y_label:str):
+    N = filter.sum()
+    min_count_req = int(np.ceil(threshold * N))
+    current_count = df[filter][Y_label].sum()
+
+    if current_count <= min_count_req:
+      available_flips = df[filter][V_label] == T_k
+      required_flips = min_count_req - current_count
+
+      assert required_flips <= available_flips.sum(), "Not enough Tk+1 to hit threshold!"
+
+      to_flip = df[filter][available_flips].sample(required_flips).index
+      df.loc[to_flip, Y_label] = True
+
+  # init to Y=1 if V>T_1|Z=1 or V>T_0|Z=0
+  df = df.assign(**{Y_label: (df[Z_label] & (df[V_label] > T_1)) | (~df[Z_label] & (df[V_label] > T_0))})
+
+  # randomly flip Y=0 -> Y=1 for V=T_1+1,Z=1 until P(Y=1|Z=1)>gamma
+  random_flip(df, df[Z_label], T_1, gamma, V_label, Y_label)
+
+  # randomly flip Y=0 -> Y=1 for V=T_0+1,Z=0 until P(Y=1|Z=0)>1-gamma
+  random_flip(df, ~df[Z_label], T_0, 1 - gamma, V_label, Y_label)
+
+  return df
+
+
 ## Methods for saving dataset
 
 def save_df(df: pd.DataFrame, file_name: str, text_keys= ['reviewText', 'syntheticText', 'cfSyntheticText']):
   """
   Saves dataframe into a npz file with keys and data
+  - text_keys : key of entries that needs to be converted from obj to string
   """
   # convert to str type
   [df[text_key].astype(str) for text_key in text_keys]
