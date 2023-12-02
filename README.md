@@ -8,7 +8,6 @@
 - Check that you have `pretrained_models\bert_en_uncased_L-12_H-768_A-12_4.tar.gz`
 - Check that you have `pretrained_models\bert_en_uncased_preprocess_3.tar.gz`
 
-
 ### 2. Dataset needs to be generated from original dataset
 - For now only synthetic dataset are available.
 - Run script `generate_synthetic_dataset.ipynb` to generate training and test dataset.
@@ -74,3 +73,41 @@
 
 ### 4. (Additional) Starting training from a previous checkpoint
 - Specify addition `-r` flag after `train.py` in the `trainJob_snthetic.sh` or `trainJob_natural.sh`
+
+## Computed Resources
+For cases where you might encounter difficulty with any of the above steps, here are some of the necessary files that have already been processed can be found here: [https://drive.google.com/drive/folders/1IIYvxUDeH-wH54ePF1kOMz1S9P4KzGpi?usp=sharing](https://drive.google.com/drive/folders/1IIYvxUDeH-wH54ePF1kOMz1S9P4KzGpi?usp=sharing)
+
+Descriptions of the files are as follows:
+1. `\pretrained_models` contains weights for BERT preprocessor and encoder required for this project.
+    - `bert_en_uncased_preprocess_3.tar.gz` for BERT preprocessor to tokenize words
+    - `bert_en_uncased_L-12_H-768_A-12_4.tar.gz` for BERT encoder, actual bi-directional transformer for encoding the text
+    - For both files, paste them in directory `\pretrained_models` and fully unzip them: `$ tar -xvzf xxx.tar.gz`
+2. `\data` contains all the processed data used for this project.
+    - Unzip `data.zip` into `\data` folder: `$ unzip data.zip`
+  
+## Default folder structure
+
+<root>
+    ├── checkpoints             # Store checkpoints generated during training (IMPORTANT for great lakes, max training time only 8 hours!)
+    │   ├── ...
+    ├── data                    # All the data files
+    │   ├── Clothing_Shoes_and_Jewelry_5.json.gz          # Stored as git-LFS
+    │   ├── nat_test_large.npz                            # Test set for natural dataset (not required for training)
+    │   ├── nat_train_large.npz                           # Train set for natural dataset
+    │   ├── nat_val_large.npz                             # Validation set for natural dataset (used for evaluating training stopping condition)
+    │   ├── ...
+    │   └── syn_train_large.npz
+    ├── pretrained_models       # All pretrained models
+    │   ├── bert_en_uncased_L-12_H-768_A-12_4             # BERT transformer model and weights
+    │       ├── ...
+    │   ├── bert_en_uncased_preprocess_3                  # Tokenizer (preprocessor) model and weights
+    │       ├── ...
+    ├── trained_model_weights   # Stores all models that hit stopping condition
+    │   ├── ...
+    ├── train.py                # Training script (`--help` for arguments)
+    ├── trainJob_natural.sh     # Sbatch file for submitting training job to great lakes (update accordingly)
+    ├── trainJob_synthetic.sh   # Sbatch file for submitting training job to great lakes (update accordingly)
+    ├── ...
+    └── README.md               # This readme file
+
+- Submit a `sbatch trainJob_natural.sh` from `<root>` when running in Great Lakes for minimal changes required.
