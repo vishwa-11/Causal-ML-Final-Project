@@ -37,6 +37,8 @@ if __name__ == '__main__':
                         help='Patience for early stopping')
     parser.add_argument('--train-natural', action='store_true',
                         help='Swap from training synthetic data to natural data')
+    parser.add_argument('--train-notty', action='store_true',
+                        help='Swap from training synthetic data to notty data')
     parser.add_argument('--data-dir', default=data_dir, type=str,
                         help='Dataset directory')
     parser.add_argument('--train-ds-filename', default=train_ds_filename, type=str,
@@ -65,7 +67,16 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     # load dataset
-    if args.train_natural:
+    if args.train_notty:
+        train_ds = load_dataset(os.path.join(args.data_dir, args.train_ds_filename),
+                            text_key='simObserved', confounder_key='extra_not',
+                            label_key='aboveVThreshold')
+        val_ds = load_dataset(os.path.join(args.data_dir,args.val_ds_filename),
+                            text_key='simObserved', confounder_key='extra_not',
+                            label_key='aboveVThreshold')
+        train_ds = train_ds.batch(args.batch_size)
+        val_ds = val_ds.batch(args.batch_size)
+    elif args.train_natural:
         train_ds = load_dataset(os.path.join(args.data_dir, args.train_ds_filename),
                             text_key='original_sentence', confounder_key='above3Stars',
                             label_key='aboveVThreshold')
